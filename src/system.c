@@ -5,10 +5,13 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <ArduinoJson.h>
+#include <HTTPClient.h>
 
-#define WIFI_SSID "Wokwi-GUEST"
-#define WIFI_PASSWORD ""
 #define DHT_PIN 10
+
+const char* WIFI_SSID = "Wokwi-GUEST";
+const char* WIFI_PASSWORD = "";
+const char* serverUrl = ""; 
 
 DHT dht(DHT_PIN, DHT22);
 RTC_DS1307 rtc;
@@ -67,14 +70,37 @@ void loop() {
 
   // Construir o objeto JSON
   StaticJsonDocument<200> jsonDoc;
-  jsonDoc["humidity"] = humidity;
   jsonDoc["temperature"] = temperature;
+  jsonDoc["humidity"] = humidity;
   jsonDoc["date_time"] = buffer;
 
   String jsonData;
   serializeJson(jsonDoc, jsonData);
 
   Serial.println(jsonData);
+
+
+  // Enviar dados para o servidor
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.addHeader("Content-Type", "application/json");
+
+    int httpResponseCode = http.POST(jsonData);
+
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.println(httpResponseCode);
+      Serial.println(response);
+    } else {
+      Serial.print("Erro na requisição: ");
+      Serial.println(httpResponseCode);
+    }
+
+    http.end();
+  } else {
+    Serial.println("Erro de conexão WiFi");
+  }
 
   delay(60000);
 }
