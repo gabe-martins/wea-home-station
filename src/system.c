@@ -9,9 +9,10 @@
 
 #define DHT_PIN 10
 
-const char* WIFI_SSID = "Wokwi-GUEST";
+const char* WIFI_SSID = "";
 const char* WIFI_PASSWORD = "";
-const char* serverUrl = ""; 
+const char* API_URL = ""; 
+const char* API_KEY = "";
 
 DHT dht(DHT_PIN, DHT22);
 RTC_DS1307 rtc;
@@ -83,8 +84,9 @@ void loop() {
   // Enviar dados para o servidor
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
-    http.begin(serverUrl);
+    http.begin(API_URL);
     http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", API_KEY); // Adicionar cabeçalho de Authorization
 
     int httpResponseCode = http.POST(jsonData);
 
